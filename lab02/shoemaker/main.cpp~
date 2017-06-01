@@ -1,0 +1,42 @@
+#include<cstdio>  
+#include<iostream>  
+#include<algorithm>  
+#define MIN(a,b) (((a)<(b))?(a):(b))  
+#define MAX(a,b) (((a)>(b))?(a):(b))  
+int A[201],B[201],L,R;  
+long  a[201],b[201];  
+long  as[201][201],bs[201][201];  
+long  dp[201][201];  
+using namespace std;  
+int main(){  
+     cin>>L>>R;  
+   for(int i=0;i<L;i++){  
+       cin>>a[i]>>A[i];as[A[i]][i+1]=a[i];}  
+   for(int j=0;j<R;j++){  
+       cin>>b[j]>>B[j];  
+       bs[B[j]][j+1]=b[j];}  
+   int maxk=-1;  
+   for(int i=0;i<L;i++)  
+      if(A[i]>maxk)maxk=A[i];  
+   for(int j=0;j<R;j++){  
+      if(B[j]>maxk)maxk=B[j];}  
+      for(int i=1;i<=L;i++){  
+      as[A[i]][i]+=as[A[i-1]][i-1];}  
+          for(int j=1;j<=R;j++){  
+        bs[B[j]][j]+=bs[B[j-1]][j-1];}  
+   for(int i=0;i<=L;i++){  
+      for(int j=0;j<=R;j++)dp[i][j]=0;}  
+  for(int i=1;i<=L;i++){  
+     for(int j=1;j<=R;j++){  
+       if(A[i-1]!=B[j-1]) dp[i][j]=MAX(dp[i-1][j],dp[i][j-1]);  
+      else{  
+         for(int x=0;x<i;x++){  
+           for(int y=0;y<j;y++){  
+               dp[i][j]=MAX(dp[i][j],dp[x][y]+MIN(as[A[i-1]][i]-as[A[i-1]][x],bs[B[j-1]][j]-bs[B[j-1]][y]));  
+          }  
+    }  
+  }  
+ }  
+}  
+cout<<dp[L][R]<<"\n";  
+}  

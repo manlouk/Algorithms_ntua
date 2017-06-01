@@ -1,0 +1,109 @@
+#include <algorithm>
+#include <cstdlib>
+#include <cstdio>
+#include <vector>
+#include <queue>
+#include <map>
+#define MAXN 500001
+#define WHITE 0
+#define GRAY 1
+#define BLACK 2
+using namespace std;
+typedef pair<int, int> ii;
+typedef vector<int> vi;
+typedef vector<ii> vii;
+vector<vii>AdjList;
+class UnionFind {                                              // OOP style
+private:
+  vi p, rank, setSize;                       // remember: vi is vector<int>
+  int numSets;
+public:
+  UnionFind(int N) {
+    setSize.assign(N, 1); numSets = N; rank.assign(N, 0);
+    p.assign(N, 0); for (int i = 0; i < N; i++) p[i] = i; }
+  int findSet(int i) { return (p[i] == i) ? i : (p[i] = findSet(p[i])); }
+  bool isSameSet(int i, int j) { return findSet(i) == findSet(j); }
+  void unionSet(int i, int j) { 
+    if (!isSameSet(i, j)) { numSets--; 
+    int x = findSet(i), y = findSet(j);
+    // rank is used to keep the tree short
+    if (rank[x] > rank[y]) { p[y] = x; setSize[x] += setSize[y]; }
+    else                   { p[x] = y; setSize[y] += setSize[x];
+                             if (rank[x] == rank[y]) rank[y]++; } } }
+  int numDisjointSets() { return numSets; }
+  int sizeOfSet(int i) { return setSize[findSet(i)]; }
+};
+int v_start,v_end,w;
+vi colors;
+vi low;
+vi d;
+int dfsCounter;
+int none=0;int sure=0;int maybe=0;
+void dfs(int u,int index) {
+   low[u] = d[u] = dfsCounter++;
+  colors[u]=GRAY;      // dfs_low[u] <= dfs_num[u]
+  for (int j = 0; j < (int)AdjList[u].size(); j++) {
+    ii v = AdjList[u][j];
+    if(v.second==index)continue;
+    if (colors[v.first] == WHITE) {                          // a tree edge // special case, count children of root
+     // dfs_parent[v.first]=u;
+      dfs(v.first,v.second);
+                // store this information first
+      if (low[v.first] > d[u])                           // for bridge
+         sure++;  
+      low[u] = min(low[u], low[v.first]);       // update dfs_low[u]
+    }
+    else      
+      low[u] = min(low[u], d[v.first]);       // update dfs_low[u]
+} 
+colors[u]=BLACK;}
+void markBridges() {
+dfsCounter=0;
+
+int n = AdjList.size();
+colors.assign(n,WHITE);low.assign(n,0);d.assign(n,0);
+for (int i=0; i<n; ++i) {
+if (colors[i] == WHITE) {
+dfs(i, -1);
+}
+}
+}
+vector< pair<int, ii> > EdgeList;
+int main(){
+int n, M;
+int leftPos;
+ int rightPos;
+scanf("%d %d",&n,&M);
+for (int i=0; i<M;i++) {
+ scanf("%d %d %d",&v_start,&v_end,&w);
+EdgeList.push_back(make_pair(w,ii(v_start-1,v_end-1)));
+}
+sort(EdgeList.begin(), EdgeList.end());
+UnionFind UF(n);
+for (int i = 0;i<M;i++){
+int j = i;
+while (j < M && EdgeList[j].first == EdgeList[i].first) j++;
+map<int, int> vertex_map; int next = 0;
+AdjList.assign(UF.numDisjointSets(),vii());
+for (int k=i; k<j; ++k) {
+int left = UF.findSet(EdgeList[k].second.first), right = UF.findSet(EdgeList[k].second.second);
+if (UF.isSameSet(EdgeList[k].second.first,EdgeList[k].second.second)) {
+ none++;
+} else {
+if(!vertex_map.count(UF.findSet(EdgeList[k].second.first)))
+  vertex_map[UF.findSet(EdgeList[k].second.first)]=next++;
+if(!vertex_map.count(UF.findSet(EdgeList[k].second.second)))
+  vertex_map[UF.findSet(EdgeList[k].second.second)]=next++;
+AdjList[vertex_map[UF.findSet(EdgeList[k].second.first)]].push_back(ii(vertex_map[UF.findSet(EdgeList[k].second.second)], k) );
+AdjList[vertex_map[UF.findSet(EdgeList[k].second.second)]].push_back(ii(vertex_map[UF.findSet(EdgeList[k].second.first)], k) );
+}
+}
+markBridges();
+for (int k = i; k < j; ++k) {
+ UF.unionSet(EdgeList[k].second.first,EdgeList[k].second.second);
+}
+i=j-1;
+}
+cout<<sure<<"\n"<<none<<"\n"<<M-sure-none<<"\n";
+return 0;
+}

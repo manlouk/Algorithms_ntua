@@ -1,0 +1,13 @@
+#Makefile for tetragonoupoli
+#10/11/2014
+
+CC=gcc
+CFLAGS= -O3 -Wall
+
+all: tetragon
+
+tetragon: tetragon.c
+	$(CC) $(CFLAGS) $^ -o $@
+
+clean:
+	rm -f tetragon
